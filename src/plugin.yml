@@ -1,0 +1,22 @@
+name: AdvancedNotifications
+main: com.m0pt0pmatt.advancednotifications.AdvancedNotifications
+version: 0.1
+commands:
+    register:
+        description:
+        usage:
+    validate:
+        description:
+        usage:
+    inbox:
+        description:
+        usage:
+    msg:
+        description:
+        usage:
+    block:
+        description:
+        usage:
+    unblock:
+        description:
+        usage:
