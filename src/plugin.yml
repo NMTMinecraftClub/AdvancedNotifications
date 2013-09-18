@@ -20,3 +20,6 @@ commands:
     unblock:
         description:
         usage:
+    blockedplayers:
+        description:
+        usage:

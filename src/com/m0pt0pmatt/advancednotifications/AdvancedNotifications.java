@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -50,8 +51,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	 * Executed when the plugin is enabled.
 	 * Sets up internal objects and loads settings
 	 */
-	public void onEnable(){
-		
+	public void onEnable(){		
 		accounts = new HashMap<String, Account>();
 		
 		//load config file
@@ -70,6 +70,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			loadAccounts();
 			
 			emailSender = new EmailSender(this);
+			emailSender.start();
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -87,10 +88,18 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		//register as listener
 		Bukkit.getPluginManager().registerEvents(this, this);
 		
-		
-		//quick fix to keep "plugin.yml" in the jar
-		YamlConfiguration pluginConfig = YamlConfiguration.loadConfiguration(new File("plugin.yml"));
-		
+		Thread thread = new Thread(){
+			public void run(){
+				try {
+					Thread.sleep(1000 * 60 * 15);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				saveAccounts();
+			}
+		};
+		thread.start();
 	}
 	
 	private void createMenus() {
@@ -104,15 +113,6 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	 */
 	public void onDisable(){
 		saveAccounts();
-	}
-	
-	/**
-	 * Executed when the plugin is being reloaded
-	 * Saves and then loads settings
-	 */
-	public void onReload(){
-		saveAccounts();
-		loadAccounts();
 	}
 	
 	/**
@@ -172,9 +172,18 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			}
 		}
 		
+		//Player wants to view his/her blcoked players
+		else if (cmd.getName().equalsIgnoreCase(Strings.BLOCKEDPLAYERS.toString())){
+			if (args.length == 0){
+				listBlockedPlayers(sender.getName());
+			}
+		}
+		
 		return false;
 	}
 	
+	
+
 	/**
 	 * Loads account information from file
 	 */
@@ -333,6 +342,27 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		player.sendMessage(Strings.PLAYERUNBLOCKED.toString());
 	}
 	
+	
+	private void listBlockedPlayers(String playerName) {
+		Player player = Bukkit.getPlayer(playerName);
+		Account account = accounts.get(playerName);
+		if (account == null){
+			player.sendMessage(Strings.NOTREGISTERED.toString());
+			return;
+		}
+		else if (!account.isValidated()){
+			player.sendMessage(Strings.NOTVALIDATED.toString());
+			player.sendMessage(Strings.HOWTOVALIDATE.toString());
+			return;
+		}
+
+		player.sendMessage(Strings.LISTINGBLOCKEDPLAYERS.toString());
+		for (String blockedPlayer: account.getBlockedPlayers()){
+			player.sendMessage(ChatColor.RED + blockedPlayer);
+		}
+		
+	}
+	
 	public void emailActivationCode(String playerName){
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
@@ -465,7 +495,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	 */
 	@EventHandler
 	public void onPlayerChat(AsyncPlayerChatEvent event){
-		
+				
 		for (Account account: accounts.values()){
 			if (account.getBlockedPlayers().contains(event.getPlayer().getName())){
 				event.getRecipients().remove(account.getPlayerName());

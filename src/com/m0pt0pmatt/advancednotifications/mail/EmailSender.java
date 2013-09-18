@@ -3,6 +3,8 @@ package com.m0pt0pmatt.advancednotifications.mail;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -15,15 +17,18 @@ import org.bukkit.plugin.Plugin;
 
 import com.sun.mail.smtp.SMTPTransport;
 
+
 /**
  * An EmailSender can send emails. It uses a Gmail account to send the emails
  * @author Matthew
  *
  */
-public class EmailSender {
+public class EmailSender extends Thread{
 
+	private LinkedList<Email> toSend;
+	
 	//The email and password the EmailSender uses to send emails
-	private String email;
+	private String emailAccount;
 	private String password;
 	
 	/**
@@ -32,6 +37,8 @@ public class EmailSender {
 	 * @param plugin
 	 */
 	public EmailSender(Plugin plugin){
+		
+		toSend = new LinkedList<Email>();
 		
 		try {
 			
@@ -51,9 +58,9 @@ public class EmailSender {
 			
 			//get the email
 			if (config.contains("email")){
-				email = config.getString("email");
+				emailAccount = config.getString("email");
 			} else {
-				email = "null";
+				emailAccount = "null";
 			}
 			
 			//get the password
@@ -69,10 +76,30 @@ public class EmailSender {
 		
 	}
 	
+	@Override
+	public void run(){
+		while(true){
+			try {
+				Thread.sleep(1000 * 3);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (!toSend.isEmpty()){
+				Email email = toSend.removeFirst();
+				sendEmail(email, emailAccount, password);
+			}
+		}
+	}
+	
+	public void sendEmail(Email email){
+		toSend.addLast(email);
+	}
+	
 	/**
 	 * sends the email
 	 */
-	public void sendEmail(Email email){
+	private void sendEmail(Email email, String emailAccount, String password){
 		try {
 
 			//Set system properties
@@ -105,7 +132,7 @@ public class EmailSender {
 	        //Send email
 	        SMTPTransport t =
 	            (SMTPTransport)session.getTransport("smtps");
-	        t.connect("smtp.gmail.com", this.email, this.password);
+	        t.connect("smtp.gmail.com", this.emailAccount, this.password);
 	        t.sendMessage(msg, msg.getAllRecipients());
 	        t.close();
 
@@ -113,4 +140,5 @@ public class EmailSender {
 		    e.printStackTrace();
 		}
 	}
+	
 }

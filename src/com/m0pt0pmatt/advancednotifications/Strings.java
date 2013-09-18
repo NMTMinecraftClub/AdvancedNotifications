@@ -43,7 +43,8 @@ public enum Strings {
 	INCORRECTCODE("Incorrect code. You are still not validated"),
 	UPDATEDINFORMATION("Your information has been updated"),
 	CHANGEDEMAIL("Your email has changed. You need to re-validate"),
-	ALREADYVALIDATED("You have already validated your account");
+	ALREADYVALIDATED("You have already validated your account"),
+	LISTINGBLOCKEDPLAYERS("You have blocked communications with:");
 	
 	private final String string;
 	
