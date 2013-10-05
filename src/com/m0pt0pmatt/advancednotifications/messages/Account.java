@@ -17,7 +17,7 @@ import com.m0pt0pmatt.advancednotifications.Strings;
  * @author Matthew
  *
  */
-public class Account {
+public class Account{
 
 	private String playerName;
 	private String realName;

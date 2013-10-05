@@ -1,13 +1,22 @@
 package com.m0pt0pmatt.advancednotifications.messages;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bukkit.configuration.ConfigurationSection;
+
+import com.m0pt0pmatt.menuservice.api.AbstractComponent;
+import com.m0pt0pmatt.menuservice.api.Component;
+import com.m0pt0pmatt.menuservice.api.ComponentType;
+import com.m0pt0pmatt.menuservice.api.attributes.Attribute;
+import com.m0pt0pmatt.menuservice.api.rendering.Renderable;
 
 /**
  * A message represents a String of characters from one player to another
  * @author Matthew
  *
  */
-public class Message {
+public class Message implements Renderable{
 
 	private String sender;
 	private String receiver;
@@ -68,6 +77,17 @@ public class Message {
 		String content = (String) messageSection.get("content");
 		Long timestamp = messageSection.getLong("timestamp");
 		return new Message(sender, receiver, content, MessageStatus.valueOf(status), timestamp);
+	}
+
+	@Override
+	public Component toComponent() {
+		Map<String, Object> attributes = new HashMap<String, Object>();
+		attributes.put(Attribute.TYPE.getName(), ComponentType.MENU.getType());
+		attributes.put(Attribute.TAG.getName(), "message{" + this.toString() + "}");
+		String text = this.sender + this.content.substring(10);
+		attributes.put(Attribute.TEXT.getName(), text);
+		AbstractComponent component = new AbstractComponent(attributes);
+		return component;
 	}
 	
 }

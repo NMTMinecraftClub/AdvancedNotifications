@@ -4,7 +4,9 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum Strings {
+import com.m0pt0pmatt.pluginutils.UtilMessage;
+
+public enum Strings implements UtilMessage {
 
 	ACCOUNTS("accounts"),
 	PLAYERNAME("playerName"),
@@ -67,5 +69,10 @@ public enum Strings {
 	
 	public Strings getEnum(String string){
 		return strings.get(string);
+	}
+
+	@Override
+	public String getMessage() {
+		return string;
 	}
 }
