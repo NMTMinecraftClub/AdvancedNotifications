@@ -46,9 +46,9 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	
 	private static MenuService menuService;
 	
-	private static EmailSender emailSender;
+	protected static EmailSender emailSender;
 	
-	private static Map<String, Account> accounts;
+	protected static Map<String, Account> accounts;
 		
 	/**
 	 * Executed when the plugin is enabled.

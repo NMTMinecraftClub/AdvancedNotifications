@@ -29,6 +29,15 @@ public class Message implements Renderable{
 		this.receiver = receiver;
 		this.content = content;
 		this.status = status;
+		this.timestamp = timestamp;
+	}
+	
+	public Message(String sender, String receiver, String content, MessageStatus status){
+		this.sender = sender;
+		this.receiver = receiver;
+		this.content = content;
+		this.status = status;
+		this.timestamp = System.currentTimeMillis();
 	}
 
 	public String getSender() {
