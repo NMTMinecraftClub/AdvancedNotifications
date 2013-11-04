@@ -3,6 +3,8 @@ package com.m0pt0pmatt.advancednotifications;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -27,9 +29,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.m0pt0pmatt.advancednotifications.mail.Email;
 import com.m0pt0pmatt.advancednotifications.mail.EmailSender;
 import com.m0pt0pmatt.advancednotifications.messages.Account;
+import com.m0pt0pmatt.advancednotifications.messages.Message;
+import com.m0pt0pmatt.advancednotifications.messages.MessageStatus;
+import com.m0pt0pmatt.menuservice.api.AbstractComponent;
+import com.m0pt0pmatt.menuservice.api.Component;
 import com.m0pt0pmatt.menuservice.api.ComponentType;
-import com.m0pt0pmatt.menuservice.api.MenuComponent;
+import com.m0pt0pmatt.menuservice.api.Menu;
+import com.m0pt0pmatt.menuservice.api.MenuPart;
 import com.m0pt0pmatt.menuservice.api.MenuService;
+import com.m0pt0pmatt.menuservice.api.rendering.Renderer;
 import com.m0pt0pmatt.pluginutils.BukkitUtil;
 import com.m0pt0pmatt.pluginutils.UtilMessageFormat;
 
@@ -40,48 +48,90 @@ import com.m0pt0pmatt.pluginutils.UtilMessageFormat;
  */
 public class AdvancedNotifications extends JavaPlugin implements Listener{
 	
-	private YamlConfiguration config;
-	private File configFile;
+	//Configuration File filename
 	private static final String configFileName = "config.yml";
 	
-	private static MenuService menuService;
+	//Configuration File
+	private File configFile;
 	
+	//Yaml configuration file
+	private YamlConfiguration config;
+	
+	//Sends emails	
 	protected static EmailSender emailSender;
 	
+	//Map of usernames to accounts
 	protected static Map<String, Account> accounts;
-		
+	
+	//The thread which saves accounts to file every couple of minutes
+	private Thread savingThread;
+	
+	public static MenuService menuService;
+	
+	/**
+	 * Executed when the plugin is first loaded
+	 * Creates internal objects and threads
+	 */
+	@Override
+	public void onLoad(){
+		accounts = new HashMap<String, Account>();
+		savingThread = new Thread(){
+			public void run(){
+				try {
+					//wait 15 minutes
+					Thread.sleep(1000 * 60 * 15);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				//save accounts if enabled
+				if (isEnabled()){
+					saveAccounts();
+				}
+			}
+		};
+		emailSender = new EmailSender(this);
+	}
+	
 	/**
 	 * Executed when the plugin is enabled.
-	 * Sets up internal objects and loads settings
+	 * Sets up internal objects, loads settings, and starts threads.
+	 * Also does:
+	 * 1) Adds a BukkitUtil label for the plugin
+	 * 2) Loads configuration files
+	 * 3) Create and Register Menus
+	 * 4) Register Listeners to Bukkit
+	 * 5) Start threads
 	 */
+	@Override
 	public void onEnable(){	
 		
+		//1) Adds a BukkitUtil label for the plugin
 		BukkitUtil.msgSender.addLabel(this.getName(), ChatColor.LIGHT_PURPLE);
 		
-		accounts = new HashMap<String, Account>();
-		
-		//load config file
+		//2) Loads configuration files
 		try {
+			
+			//make sure data folder exists
 			if (!this.getDataFolder().exists()){
 				this.getDataFolder().mkdir();
 			}
-			configFile = new File(getDataFolder(), configFileName);
 			
+			//make sure config file exists
+			configFile = new File(getDataFolder(), configFileName);
 			if (!configFile.exists()){
 				configFile.createNewFile();
 			}
-			
 			config = YamlConfiguration.loadConfiguration(configFile);
 			
+			//load account from configuration file
 			loadAccounts();
 			
-			emailSender = new EmailSender(this);
-			emailSender.start();
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
+		//3) Create and Register Menus
 		//get MenuService
 		if (Bukkit.getServicesManager().isProvidedFor(MenuService.class)){
 			menuService = Bukkit.getServicesManager().getRegistration(MenuService.class).getProvider();
@@ -89,31 +139,12 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			menuService = null;
 		}
 		
-		createMenus();
-		
-		//register as listener
+		//4) Register Listeners to Bukkit
 		Bukkit.getPluginManager().registerEvents(this, this);
 		
-		Thread thread = new Thread(){
-			public void run(){
-				try {
-					Thread.sleep(1000 * 60 * 15);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				saveAccounts();
-			}
-		};
-		thread.start();
-	}
-	
-	private void createMenus() {
-		MenuComponent menu = new MenuComponent();
-		menu.setType(ComponentType.MENU);
-		menu.setTag("AdvancedNotifications:Inbox");
-		
-		menuService.addMenu(menu);
+		//5) Start threads
+		savingThread.start();
+		emailSender.start();
 	}
 
 	/**
@@ -152,18 +183,21 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		//player wants to view the inbox
 		else if (cmd.getName().equalsIgnoreCase(Strings.INBOX.toString())){
 			if (args.length == 0){
-				
+				openInbox(sender.getName());
 			}
 			
 			return false;
 		}
 		
 		//player wants to send a message
-		else if (cmd.getName().equalsIgnoreCase(Strings.MSG.toString())){
+		else if (cmd.getName().equalsIgnoreCase(Strings.SENDMSG.toString())){
 			if (args.length < 2){
 				return false;
 			}
 			
+			String message = "";
+			for (int i = 1; i < args.length; i++) message = message.concat(args[i]);
+			sendMessage(sender.getName(), args[0], message);
 			return true;
 		}
 		
@@ -181,7 +215,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			}
 		}
 		
-		//Player wants to view his/her blcoked players
+		//Player wants to view his/her blocked players
 		else if (cmd.getName().equalsIgnoreCase(Strings.BLOCKEDPLAYERS.toString())){
 			if (args.length == 0){
 				listBlockedPlayers(sender.getName());
@@ -190,23 +224,28 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		
 		return false;
 	}
-	
-	
 
 	/**
 	 * Loads account information from file
 	 */
 	private void loadAccounts(){
 		
+		//remove current accounts
 		accounts.clear();
 		
+		//check if the config file has an accounts section
 		if (!config.contains(Strings.ACCOUNTS.toString())){
 			return;
 		}
 		
+		//for each account
 		MemorySection accountsSection = (MemorySection) config.get(Strings.ACCOUNTS.toString());
 		for (String playerName: accountsSection.getKeys(false)){
+			
+			//create an account from the data in the config file
 			Account account = Account.unserializeAccount(accountsSection.getConfigurationSection(playerName));
+			
+			//add the account
 			accounts.put(account.getPlayerName(), account);
 		}
 	}
@@ -215,18 +254,25 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	 * Saves account information to file
 	 */
 	public void saveAccounts(){
+		
 		ConfigurationSection accountsSection = null;
+		
+		//get the section of the config which holds the account, if it exists
 		if (config.contains(Strings.ACCOUNTS.toString())) {
 			accountsSection = config.getConfigurationSection(Strings.ACCOUNTS.toString());
 		}
+		
+		//otherwise create a new section
 		else{
 			accountsSection = config.createSection(Strings.ACCOUNTS.toString());
 		}
 		
+		//add each account to the accountsSection
 		for (Account account: accounts.values()){
 			Account.serializeAccount(accountsSection, account);
 		}
 		
+		//save the config to file
 		try {
 			config.save(configFile);
 		} catch (IOException e) {
@@ -305,6 +351,58 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.INCORRECTCODE);
 			account.setValidated(false);
 		}
+	}
+	
+	private void sendMessage(String senderName, String receiverName, String message) {
+		Player sender = Bukkit.getPlayer(senderName);
+		Account senderAccount = accounts.get(senderName);
+		if (senderAccount == null){
+			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			return;
+		}
+		else if (!senderAccount.isValidated()){
+			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			return;
+		}
+		
+		Player receiver = Bukkit.getPlayer(receiverName);
+		Account receiverAccount = accounts.get(receiverName);
+		if (receiverAccount == null){
+			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.OTHERNOTREGISTERED);
+			return;
+		}
+		
+		Message m = new Message(senderName, receiverName, message, MessageStatus.SENT);
+		receiverAccount.addMessage(m);
+		
+		BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.NOTIFICATION, this, Strings.MESSAGESENT);
+		
+	}
+	
+	private void openInbox(String playerName) {
+		Player player = Bukkit.getPlayer(playerName);
+		Account account = accounts.get(playerName);
+		if (account == null){
+			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			return;
+		}
+		else if (!account.isValidated()){
+			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			return;
+		}
+		
+		Menu menu = new Menu();
+		menu.setSize(6);
+		List<Component> components = new LinkedList<Component>();
+		for (Message m: account.getMessages()){
+			components.add(m.toComponent());
+		}
+		menu.addPart(new MenuPart("messages", components));
+		
+		Renderer r = menuService.getRenderer("inventory");
+		r.openMenu(menu, playerName);
 	}
 	
 	/**

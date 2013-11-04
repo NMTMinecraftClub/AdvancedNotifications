@@ -74,7 +74,7 @@ public class Message implements Renderable{
 		
 		messageSection.set("sender", message.getSender());
 		messageSection.set("receiver", message.getReceiver());
-		messageSection.set("status", message.getStatus());
+		messageSection.set("status", message.getStatus().toString());
 		messageSection.set("content", message.getContent());
 		messageSection.set("timestamp", message.getTimestamp());
 	}
@@ -91,11 +91,11 @@ public class Message implements Renderable{
 	@Override
 	public Component toComponent() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
-		attributes.put(Attribute.TYPE.getName(), ComponentType.MENU.getType());
-		attributes.put(Attribute.TAG.getName(), "message{" + this.toString() + "}");
-		String text = this.sender + this.content.substring(10);
+		String text = this.sender + ": " + this.content.substring(0, java.lang.Math.min(10, this.content.length()));
 		attributes.put(Attribute.TEXT.getName(), text);
 		AbstractComponent component = new AbstractComponent(attributes);
+		component.setTag("message{" + this.toString() + "}");
+		component.setType(ComponentType.BUTTON);
 		return component;
 	}
 	

@@ -1,7 +1,7 @@
 name: AdvancedNotifications
 main: com.m0pt0pmatt.advancednotifications.AdvancedNotifications
-version: 0.2
-softdepend: [PluginUtils]
+version: 0.3
+softdepend: [PluginUtils, MenuService]
 commands:
     register:
         description:
@@ -12,7 +12,7 @@ commands:
     inbox:
         description:
         usage:
-    msg:
+    sendmsg:
         description:
         usage:
     block:

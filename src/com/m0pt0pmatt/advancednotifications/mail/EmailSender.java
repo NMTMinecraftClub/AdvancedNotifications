@@ -29,6 +29,7 @@ public class EmailSender extends Thread{
 	//The email and password the EmailSender uses to send emails
 	private String emailAccount;
 	private String password;
+	private Plugin plugin;
 	
 	/**
 	 * Sets up the email and password by pulling them from a config file named "password.yml"
@@ -38,6 +39,12 @@ public class EmailSender extends Thread{
 	public EmailSender(Plugin plugin){
 		
 		toSend = new LinkedList<Email>();
+		this.plugin = plugin;
+		
+	}
+	
+	@Override
+	public void run(){
 		
 		try {
 			
@@ -51,8 +58,6 @@ public class EmailSender extends Thread{
 			if (!file.exists()){
 				file.createNewFile();
 			}
-			
-			//load the configuration
 			YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 			
 			//get the email
@@ -73,10 +78,6 @@ public class EmailSender extends Thread{
 			e.printStackTrace();
 		}
 		
-	}
-	
-	@Override
-	public void run(){
 		while(true){
 			try {
 				Thread.sleep(1000 * 3);

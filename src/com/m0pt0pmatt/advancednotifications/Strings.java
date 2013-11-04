@@ -23,6 +23,7 @@ public enum Strings implements UtilMessage {
 	TIMESTAMP("timestamp"),
 	
 	NOTREGISTERED("You have not registered yourself on this server!"),
+	OTHERNOTREGISTERED("That player is not registered on the server!"),
 	WHYREGISTER("Registering allows you to get email notifications and send/receive messages"),
 	REGISTERFORCOMMANDS("You cannot use commands until you register"),
 	REGISTERINTERACT("You cannot build until you register"),
@@ -32,7 +33,7 @@ public enum Strings implements UtilMessage {
 	REGISTER("register"),
 	VALIDATE("validate"),
 	INBOX("inbox"),
-	MSG("msg"),
+	SENDMSG("sendmsg"),
 	BLOCK("block"),
 	UNBLOCK("unblock"),
 	INVALIDEMAIL("Error: Invalid email address"), 
@@ -46,7 +47,8 @@ public enum Strings implements UtilMessage {
 	UPDATEDINFORMATION("Your information has been updated"),
 	CHANGEDEMAIL("Your email has changed. You need to re-validate"),
 	ALREADYVALIDATED("You have already validated your account"),
-	LISTINGBLOCKEDPLAYERS("You have blocked communications with:");
+	LISTINGBLOCKEDPLAYERS("You have blocked communications with:"),
+	MESSAGESENT("Message sent");
 	
 	private final String string;
 	
