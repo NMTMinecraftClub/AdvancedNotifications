@@ -38,8 +38,6 @@ import com.m0pt0pmatt.menuservice.api.Menu;
 import com.m0pt0pmatt.menuservice.api.MenuPart;
 import com.m0pt0pmatt.menuservice.api.MenuService;
 import com.m0pt0pmatt.menuservice.api.rendering.Renderer;
-import com.m0pt0pmatt.pluginutils.BukkitUtil;
-import com.m0pt0pmatt.pluginutils.UtilMessageFormat;
 
 /**
  * This plugin allows an admin to give notifications to users
@@ -106,7 +104,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	public void onEnable(){	
 		
 		//1) Adds a BukkitUtil label for the plugin
-		BukkitUtil.msgSender.addLabel(this.getName(), ChatColor.LIGHT_PURPLE);
+		//BukkitUtil.msgSender.addLabel(this.getName(), ChatColor.LIGHT_PURPLE);
 		
 		//2) Loads configuration files
 		try {
@@ -292,7 +290,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		//Get the player's email address
 		String emailAddress = args[args.length - 1];
 		if (!emailAddress.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.BADARGUMENTS, this, Strings.INVALIDEMAIL);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.BADARGUMENTS, this, Strings.INVALIDEMAIL);
 			return;
 		}
 		
@@ -305,11 +303,11 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		if (accounts.containsKey(playerName)){
 			Account account = accounts.get(playerName);
 			account.setRealName(realName);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.NOTIFICATION, this, Strings.UPDATEDINFORMATION);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.NOTIFICATION, this, Strings.UPDATEDINFORMATION);
 			if (!account.getEmailAddress().equalsIgnoreCase(emailAddress)){
 				account.setEmailAddress(emailAddress);
 				account.setValidated(false);
-				BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.NOTIFICATION, this, Strings.CHANGEDEMAIL);
+				//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.NOTIFICATION, this, Strings.CHANGEDEMAIL);
 				account.setActivationCode(Account.generateActivationCode());
 			}
 			
@@ -325,30 +323,30 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		this.emailActivationCode(playerName);
 		
 		//notify the player
-		BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.NOTIFICATION, this, Strings.REGISTERED);
-		BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.OUTPUT, this, "Full Name: " + realName);
-		BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.OUTPUT, this, "Email Address: " + emailAddress);
+		//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.NOTIFICATION, this, Strings.REGISTERED);
+		//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.OUTPUT, this, "Full Name: " + realName);
+		//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.OUTPUT, this, "Email Address: " + emailAddress);
 	}
 	
 	public void validatePlayer(String playerName, String code){
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			return;
 		}
 		
 		if (account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.ALREADYVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.ALREADYVALIDATED);
 			return;
 		}
 		
 		if (code.equalsIgnoreCase(account.getActivationCode())){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.CORRECTCODE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.CORRECTCODE);
 			account.setValidated(true);
 		}
 		else{
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.INCORRECTCODE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.INCORRECTCODE);
 			account.setValidated(false);
 		}
 	}
@@ -357,26 +355,26 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player sender = Bukkit.getPlayer(senderName);
 		Account senderAccount = accounts.get(senderName);
 		if (senderAccount == null){
-			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			return;
 		}
 		else if (!senderAccount.isValidated()){
-			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			return;
 		}
 		
 		Player receiver = Bukkit.getPlayer(receiverName);
 		Account receiverAccount = accounts.get(receiverName);
 		if (receiverAccount == null){
-			BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.OTHERNOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.ERROR, this, Strings.OTHERNOTREGISTERED);
 			return;
 		}
 		
 		Message m = new Message(senderName, receiverName, message, MessageStatus.SENT);
 		receiverAccount.addMessage(m);
 		
-		BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.NOTIFICATION, this, Strings.MESSAGESENT);
+		//BukkitUtil.msgSender.sendMessage(sender, UtilMessageFormat.NOTIFICATION, this, Strings.MESSAGESENT);
 		
 	}
 	
@@ -384,12 +382,12 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			return;
 		}
 		
@@ -414,17 +412,17 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			return;
 		}
 		
 		accounts.get(playerName).blockPlayer(toBeBlocked);
-		BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.PLAYERBLOCKED);
+		//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.PLAYERBLOCKED);
 	}
 	
 	/**
@@ -436,17 +434,17 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			return;
 		}
 		
 		accounts.get(playerName).unblockPlayer(toBeUnblocked);
-		BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.PLAYERUNBLOCKED);
+		//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.PLAYERUNBLOCKED);
 	}
 	
 	
@@ -454,18 +452,18 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			return;
 		}
 
-		BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.OUTPUT, this, Strings.LISTINGBLOCKEDPLAYERS);
+		//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.OUTPUT, this, Strings.LISTINGBLOCKEDPLAYERS);
 		for (String blockedPlayer: account.getBlockedPlayers()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, "", ChatColor.RED + blockedPlayer);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, "", ChatColor.RED + blockedPlayer);
 		}
 		
 	}
@@ -474,7 +472,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			return;
 		}
 		
@@ -496,13 +494,13 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Account account = accounts.get(player.getName());
 		
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.WHYREGISTER);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.WHYREGISTER);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.HOWTOVALIDATE);
 		}
 	}
 	
@@ -512,15 +510,15 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Account account = accounts.get(player.getName());
 		
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERINTERACT);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERINTERACT);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
 			event.setCancelled(true);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			event.setCancelled(true);
 			return;
 		}
@@ -531,15 +529,15 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = event.getPlayer();
 		Account account = accounts.get(player.getName());
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERENTITY);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERENTITY);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
 			event.setCancelled(true);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			event.setCancelled(true);
 			return;
 		}
@@ -554,15 +552,15 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = (Player) entity;
 		Account account = accounts.get(player.getName());
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERENTITY);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERENTITY);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
 			event.setCancelled(true);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			event.setCancelled(true);
 			return;
 		}
@@ -581,15 +579,15 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		Player player = event.getPlayer();
 		Account account = accounts.get(player.getName());
 		if (account == null){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERFORCOMMANDS);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTREGISTERED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.REGISTERFORCOMMANDS);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOREGISTER);
 			event.setCancelled(true);
 			return;
 		}
 		else if (!account.isValidated()){
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
-			BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.ERROR, this, Strings.NOTVALIDATED);
+			//BukkitUtil.msgSender.sendMessage(player, UtilMessageFormat.DEFAULT, this, Strings.HOWTOVALIDATE);
 			event.setCancelled(true);
 			return;
 		}
