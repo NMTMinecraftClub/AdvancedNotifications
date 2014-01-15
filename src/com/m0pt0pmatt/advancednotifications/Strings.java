@@ -4,7 +4,9 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum Strings /*implements UtilMessage*/ {
+import com.bukkittoolkit.formatting.FormattedMessage;
+
+public enum Strings implements FormattedMessage {
 
 	ACCOUNTS("accounts"),
 	PLAYERNAME("playerName"),
