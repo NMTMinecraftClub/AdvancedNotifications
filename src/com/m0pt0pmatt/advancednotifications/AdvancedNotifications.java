@@ -481,7 +481,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		
 		//check if player is registered
 		Player player = event.getPlayer();
-		Account account = accounts.get(player.getName());
+		Account account = accounts.get(player.getUniqueId());
 		
 		if (account == null){
 			Formatting.msgSender.sendMessage(player, MessageFormat.ERROR, this, Strings.NOTREGISTERED);
@@ -497,7 +497,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	@EventHandler
 	public void onInteract(PlayerInteractEvent event){
 		Player player = event.getPlayer();
-		Account account = accounts.get(player.getName());
+		Account account = accounts.get(player.getUniqueId());
 		
 		if (account == null){
 			Formatting.msgSender.sendMessage(player, MessageFormat.ERROR, this, Strings.NOTREGISTERED);
@@ -517,7 +517,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	@EventHandler
 	public void onEntityInteract(PlayerInteractEntityEvent event){
 		Player player = event.getPlayer();
-		Account account = accounts.get(player.getName());
+		Account account = accounts.get(player.getUniqueId());
 		if (account == null){
 			Formatting.msgSender.sendMessage(player, MessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			Formatting.msgSender.sendMessage(player, MessageFormat.DEFAULT, this, Strings.REGISTERENTITY);
@@ -540,7 +540,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			return;
 		}
 		Player player = (Player) entity;
-		Account account = accounts.get(player.getName());
+		Account account = accounts.get(player.getUniqueId());
 		if (account == null){
 			Formatting.msgSender.sendMessage(player, MessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			Formatting.msgSender.sendMessage(player, MessageFormat.DEFAULT, this, Strings.REGISTERENTITY);
@@ -567,7 +567,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		}
 		
 		Player player = event.getPlayer();
-		Account account = accounts.get(player.getName());
+		Account account = accounts.get(player.getUniqueId());
 		if (account == null){
 			Formatting.msgSender.sendMessage(player, MessageFormat.ERROR, this, Strings.NOTREGISTERED);
 			Formatting.msgSender.sendMessage(player, MessageFormat.DEFAULT, this, Strings.REGISTERFORCOMMANDS);
@@ -581,22 +581,6 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			event.setCancelled(true);
 			return;
 		}
-	}
-	
-	
-	/**
-	 * Filter blocked players
-	 * @param event
-	 */
-	@EventHandler
-	public void onPlayerChat(AsyncPlayerChatEvent event){
-				
-		for (Account account: accounts.values()){
-			if (account.getBlockedPlayers().contains(event.getPlayer().getName())){
-				event.getRecipients().remove(account.getPlayerName());
-			}
-		}
-		
 	}
 	
 	public static void main(String[] args){
