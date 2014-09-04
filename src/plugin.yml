@@ -1,6 +1,6 @@
 name: AdvancedNotifications
 main: com.m0pt0pmatt.advancednotifications.AdvancedNotifications
-version: 0.3
+version: 0.4
 softdepend: [PluginUtils, MenuService]
 commands:
     register:

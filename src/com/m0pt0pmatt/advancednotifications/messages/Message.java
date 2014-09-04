@@ -1,30 +1,23 @@
 package com.m0pt0pmatt.advancednotifications.messages;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.configuration.ConfigurationSection;
-
-import com.m0pt0pmatt.menuservice.api.AbstractComponent;
-import com.m0pt0pmatt.menuservice.api.Component;
-import com.m0pt0pmatt.menuservice.api.ComponentType;
-import com.m0pt0pmatt.menuservice.api.attributes.Attribute;
-import com.m0pt0pmatt.menuservice.api.rendering.Renderable;
 
 /**
  * A message represents a String of characters from one player to another
  * @author Matthew
  *
  */
-public class Message implements Renderable{
+public class Message{
 
-	private String sender;
-	private String receiver;
+	private UUID sender;
+	private UUID receiver;
 	private String content;
 	private MessageStatus status;
 	private long timestamp;
 	
-	public Message(String sender, String receiver, String content, MessageStatus status, long timestamp){
+	public Message(UUID sender, UUID receiver, String content, MessageStatus status, long timestamp){
 		this.sender = sender;
 		this.receiver = receiver;
 		this.content = content;
@@ -32,7 +25,7 @@ public class Message implements Renderable{
 		this.timestamp = timestamp;
 	}
 	
-	public Message(String sender, String receiver, String content, MessageStatus status){
+	public Message(UUID sender, UUID receiver, String content, MessageStatus status){
 		this.sender = sender;
 		this.receiver = receiver;
 		this.content = content;
@@ -40,11 +33,11 @@ public class Message implements Renderable{
 		this.timestamp = System.currentTimeMillis();
 	}
 
-	public String getSender() {
+	public UUID getSender() {
 		return sender;
 	}
 
-	public String getReceiver() {
+	public UUID getReceiver() {
 		return receiver;
 	}
 
@@ -72,31 +65,20 @@ public class Message implements Renderable{
 		
 		ConfigurationSection messageSection = messagesSection.createSection(location);
 		
-		messageSection.set("sender", message.getSender());
-		messageSection.set("receiver", message.getReceiver());
+		messageSection.set("sender", message.getSender().toString());
+		messageSection.set("receiver", message.getReceiver().toString());
 		messageSection.set("status", message.getStatus().toString());
 		messageSection.set("content", message.getContent());
 		messageSection.set("timestamp", message.getTimestamp());
 	}
 	
 	public static Message unserializeMessage(ConfigurationSection messageSection){
-		String sender = (String) messageSection.get("sender");
-		String receiver = (String) messageSection.get("receiver");
+		UUID sender = UUID.fromString((String) messageSection.get("sender"));
+		UUID receiver = UUID.fromString((String) messageSection.get("receiver"));
 		String status = (String) messageSection.get("status");
 		String content = (String) messageSection.get("content");
 		Long timestamp = messageSection.getLong("timestamp");
 		return new Message(sender, receiver, content, MessageStatus.valueOf(status), timestamp);
-	}
-
-	@Override
-	public Component toComponent() {
-		Map<String, Object> attributes = new HashMap<String, Object>();
-		String text = this.sender + ": " + this.content.substring(0, java.lang.Math.min(10, this.content.length()));
-		attributes.put(Attribute.TEXT.getName(), text);
-		AbstractComponent component = new AbstractComponent(attributes);
-		component.setTag("message{" + this.toString() + "}");
-		component.setType(ComponentType.BUTTON);
-		return component;
 	}
 	
 }

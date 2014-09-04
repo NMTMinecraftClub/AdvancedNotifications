@@ -3,9 +3,8 @@ package com.m0pt0pmatt.advancednotifications;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,11 +32,6 @@ import com.m0pt0pmatt.advancednotifications.mail.EmailSender;
 import com.m0pt0pmatt.advancednotifications.messages.Account;
 import com.m0pt0pmatt.advancednotifications.messages.Message;
 import com.m0pt0pmatt.advancednotifications.messages.MessageStatus;
-import com.m0pt0pmatt.menuservice.api.Component;
-import com.m0pt0pmatt.menuservice.api.Menu;
-import com.m0pt0pmatt.menuservice.api.MenuPart;
-import com.m0pt0pmatt.menuservice.api.MenuService;
-import com.m0pt0pmatt.menuservice.api.rendering.Renderer;
 
 /**
  * This plugin allows an admin to give notifications to users
@@ -59,20 +53,18 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	protected static EmailSender emailSender;
 	
 	//Map of usernames to accounts
-	protected static Map<String, Account> accounts;
+	protected static Map<UUID, Account> accounts;
 	
 	//The thread which saves accounts to file every couple of minutes
 	private Thread savingThread;
-	
-	public static MenuService menuService;
-	
+		
 	/**
 	 * Executed when the plugin is first loaded
 	 * Creates internal objects and threads
 	 */
 	@Override
 	public void onLoad(){
-		accounts = new HashMap<String, Account>();
+		accounts = new HashMap<UUID, Account>();
 		savingThread = new Thread(){
 			public void run(){
 				try {
@@ -129,14 +121,6 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			e.printStackTrace();
 		}
 		
-		//3) Create and Register Menus
-		//get MenuService
-		if (Bukkit.getServicesManager().isProvidedFor(MenuService.class)){
-			menuService = Bukkit.getServicesManager().getRegistration(MenuService.class).getProvider();
-		} else{
-			menuService = null;
-		}
-		
 		//4) Register Listeners to Bukkit
 		Bukkit.getPluginManager().registerEvents(this, this);
 		
@@ -160,11 +144,11 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		
 		//Player wants to register with the server
 		if (cmd.getName().equalsIgnoreCase(Strings.REGISTER.toString())){
-			if (args.length < 2){
+			if (args.length < 1){
 				return false;
 			}
 			
-			registerPlayer(sender.getName(), args);
+			registerPlayer(((Player)sender).getUniqueId(), args);
 			return true;
 		}
 		
@@ -174,14 +158,14 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 				return false;
 			}
 			
-			validatePlayer(sender.getName(), args[0]);
+			validatePlayer(((Player)sender).getUniqueId(), args[0]);
 			return true;
 		}
 		
 		//player wants to view the inbox
 		else if (cmd.getName().equalsIgnoreCase(Strings.INBOX.toString())){
 			if (args.length == 0){
-				openInbox(sender.getName());
+				openInbox(((Player)sender).getUniqueId());
 			}
 			
 			return false;
@@ -195,28 +179,52 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			
 			String message = "";
 			for (int i = 1; i < args.length; i++) message = message.concat(args[i]);
-			sendMessage(sender.getName(), args[0], message);
+			
+			UUID receiver = null;
+			for (Player p: Bukkit.getServer().getOnlinePlayers()){
+				if (p.getName().equals(args[0])){
+					receiver = p.getUniqueId();
+				}
+			}
+			
+			sendMessage(((Player)sender).getUniqueId(), receiver, message);
 			return true;
 		}
 		
 		//player wants to block another player
 		else if (cmd.getName().equalsIgnoreCase(Strings.BLOCK.toString())){
 			if (args.length == 1){
-				blockPlayer(sender.getName(), args[0]);
+				
+				UUID receiver = null;
+				for (Player p: Bukkit.getServer().getOnlinePlayers()){
+					if (p.getName().equals(args[0])){
+						receiver = p.getUniqueId();
+					}
+				}
+				
+				blockPlayer(((Player)sender).getUniqueId(), receiver);
 			}
 		}
 		
 		//player wnats to unblock another player
 		else if (cmd.getName().equalsIgnoreCase(Strings.UNBLOCK.toString())){
 			if (args.length == 1){
-				unblockPlayer(sender.getName(), args[0]);
+				
+				UUID receiver = null;
+				for (Player p: Bukkit.getServer().getOnlinePlayers()){
+					if (p.getName().equals(args[0])){
+						receiver = p.getUniqueId();
+					}
+				}
+				
+				unblockPlayer(((Player)sender).getUniqueId(), receiver);
 			}
 		}
 		
 		//Player wants to view his/her blocked players
 		else if (cmd.getName().equalsIgnoreCase(Strings.BLOCKEDPLAYERS.toString())){
 			if (args.length == 0){
-				listBlockedPlayers(sender.getName());
+				listBlockedPlayers(((Player)sender).getUniqueId());
 			}
 		}
 		
@@ -283,26 +291,19 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	 * @param playerName
 	 * @param args
 	 */
-	public void registerPlayer(String playerName, String[] args){
+	public void registerPlayer(UUID playerName, String[] args){
 		
 		Player player = Bukkit.getPlayer(playerName);
 		
 		//Get the player's email address
-		String emailAddress = args[args.length - 1];
+		String emailAddress = args[0];
 		if (!emailAddress.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")){
 			Formatting.msgSender.sendMessage(player, MessageFormat.BADARGUMENTS, this, Strings.INVALIDEMAIL);
 			return;
 		}
 		
-		//Get the player's real name
-		String realName = args[0];
-		for (int i = 1; i < args.length - 1; i++){
-			realName = realName + " " + args[i];
-		}
-		
 		if (accounts.containsKey(playerName)){
 			Account account = accounts.get(playerName);
-			account.setRealName(realName);
 			Formatting.msgSender.sendMessage(player, MessageFormat.NOTIFICATION, this, Strings.UPDATEDINFORMATION);
 			if (!account.getEmailAddress().equalsIgnoreCase(emailAddress)){
 				account.setEmailAddress(emailAddress);
@@ -317,18 +318,17 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		}
 		
 		//create a new account
-		accounts.put(playerName, new Account(playerName, realName, emailAddress));
+		accounts.put(playerName, new Account(playerName, emailAddress));
 		
 		//email the activation code
 		this.emailActivationCode(playerName);
 		
 		//notify the player
 		Formatting.msgSender.sendMessage(player, MessageFormat.NOTIFICATION, this, Strings.REGISTERED);
-		Formatting.msgSender.sendMessage(player, MessageFormat.OUTPUT, this, "Full Name: " + realName);
 		Formatting.msgSender.sendMessage(player, MessageFormat.OUTPUT, this, "Email Address: " + emailAddress);
 	}
 	
-	public void validatePlayer(String playerName, String code){
+	public void validatePlayer(UUID playerName, String code){
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
@@ -351,7 +351,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		}
 	}
 	
-	private void sendMessage(String senderName, String receiverName, String message) {
+	private void sendMessage(UUID senderName, UUID receiverName, String message) {
 		Player sender = Bukkit.getPlayer(senderName);
 		Account senderAccount = accounts.get(senderName);
 		if (senderAccount == null){
@@ -377,7 +377,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		
 	}
 	
-	private void openInbox(String playerName) {
+	private void openInbox(UUID playerName) {
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
@@ -390,16 +390,6 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 			return;
 		}
 		
-		Menu menu = new Menu();
-		menu.setSize(6);
-		List<Component> components = new LinkedList<Component>();
-		for (Message m: account.getMessages()){
-			components.add(m.toComponent());
-		}
-		menu.addPart(new MenuPart("messages", components));
-		
-		Renderer r = menuService.getRenderer("inventory");
-		r.openMenu(menu, playerName);
 	}
 	
 	/**
@@ -407,7 +397,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	 * @param playerName
 	 * @param toBeBlocked
 	 */
-	public void blockPlayer(String playerName, String toBeBlocked){
+	public void blockPlayer(UUID playerName, UUID toBeBlocked){
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
@@ -429,7 +419,7 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 	 * @param playerName
 	 * @param toBeUnblocked
 	 */
-	public void unblockPlayer(String playerName, String toBeUnblocked){
+	public void unblockPlayer(UUID playerName, UUID toBeUnblocked){
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
@@ -443,11 +433,12 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		}
 		
 		accounts.get(playerName).unblockPlayer(toBeUnblocked);
+		
 		Formatting.msgSender.sendMessage(player, MessageFormat.DEFAULT, this, Strings.PLAYERUNBLOCKED);
 	}
 	
 	
-	private void listBlockedPlayers(String playerName) {
+	private void listBlockedPlayers(UUID playerName) {
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){
@@ -461,13 +452,13 @@ public class AdvancedNotifications extends JavaPlugin implements Listener{
 		}
 
 		Formatting.msgSender.sendMessage(player, MessageFormat.OUTPUT, this, Strings.LISTINGBLOCKEDPLAYERS);
-		for (String blockedPlayer: account.getBlockedPlayers()){
-			Formatting.msgSender.sendMessage(player, MessageFormat.DEFAULT, "", ChatColor.RED + blockedPlayer);
+		for (UUID blockedPlayer: account.getBlockedPlayers()){
+			Formatting.msgSender.sendMessage(player, MessageFormat.DEFAULT, "", ChatColor.RED + Bukkit.getPlayer(blockedPlayer).getName());
 		}
 		
 	}
 	
-	public void emailActivationCode(String playerName){
+	public void emailActivationCode(UUID playerName){
 		Player player = Bukkit.getPlayer(playerName);
 		Account account = accounts.get(playerName);
 		if (account == null){

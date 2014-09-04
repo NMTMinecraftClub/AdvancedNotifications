@@ -28,7 +28,7 @@ public enum Strings implements FormattedMessage {
 	REGISTERFORCOMMANDS("You cannot use commands until you register"),
 	REGISTERINTERACT("You cannot build until you register"),
 	REGISTERENTITY("You cannot interact with entities until you register"),
-	HOWTOREGISTER("Register by typing the command: /register [Your Name] [emailAddress]"), 
+	HOWTOREGISTER("Register by typing the command: /register [emailAddress]"), 
 	
 	REGISTER("register"),
 	VALIDATE("validate"),

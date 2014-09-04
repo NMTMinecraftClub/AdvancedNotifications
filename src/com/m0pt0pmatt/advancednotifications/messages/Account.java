@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemorySection;
@@ -20,10 +21,7 @@ import com.m0pt0pmatt.advancednotifications.Strings;
 public class Account{
 
 	//The username of the player
-	private String playerName;
-	
-	//the players real name
-	private String realName;
+	private UUID playerName;
 	
 	//the email address of the player
 	private String emailAddress;
@@ -32,7 +30,7 @@ public class Account{
 	private List<Message> messages;
 	
 	//the other players this player has blocked
-	private Set<String> blockedPlayers;
+	private Set<UUID> blockedPlayers;
 	
 	//a flag which determines is this account has been validated via email
 	private boolean validated;
@@ -46,13 +44,12 @@ public class Account{
 	 * @param realName
 	 * @param emailAddress
 	 */
-	public Account(String playerName, String realName, String emailAddress){
+	public Account(UUID playerName, String emailAddress){
 		this.playerName = playerName;
-		this.realName = realName;
 		this.emailAddress = emailAddress;
 		
 		messages = new ArrayList<Message>();
-		blockedPlayers = new HashSet<String>();
+		blockedPlayers = new HashSet<UUID>();
 		validated = false;
 		
 		//create a random activation string
@@ -70,9 +67,8 @@ public class Account{
 	 * @param validated
 	 * @param activationCode
 	 */
-	private Account(String playerName, String realName, String emailAddress, List<Message> messages, Set<String> blockedPlayers, boolean validated, String activationCode){
+	private Account(UUID playerName, String emailAddress, List<Message> messages, Set<UUID> blockedPlayers, boolean validated, String activationCode){
 		this.playerName = playerName;
-		this.realName = realName;
 		this.emailAddress = emailAddress;
 		this.messages = messages;
 		this.blockedPlayers = blockedPlayers;
@@ -90,16 +86,8 @@ public class Account{
 		this.validated = validated;
 	}
 
-	public String getPlayerName() {
+	public UUID getPlayerName() {
 		return playerName;
-	}
-
-	public String getRealName() {
-		return realName;
-	}
-	
-	public void setRealName(String realName){
-		this.realName = realName;
 	}
 
 	public String getEmailAddress() {
@@ -126,15 +114,15 @@ public class Account{
 		messages.remove(message);
 	}
 
-	public Set<String> getBlockedPlayers() {
+	public Set<UUID> getBlockedPlayers() {
 		return blockedPlayers;
 	}
 	
-	public void blockPlayer(String playerName){
+	public void blockPlayer(UUID playerName){
 		blockedPlayers.add(playerName);
 	}
 	
-	public void unblockPlayer(String playerName){
+	public void unblockPlayer(UUID playerName){
 		blockedPlayers.remove(playerName);
 	}
 	
@@ -167,11 +155,10 @@ public class Account{
 	public static void serializeAccount(ConfigurationSection accountsSection, Account account){
 		
 		//create a new section for the account
-		ConfigurationSection accountSection = accountsSection.createSection(account.getPlayerName());
+		ConfigurationSection accountSection = accountsSection.createSection(account.getPlayerName().toString());
 		
 		//add simple data to the configuration section
-		accountSection.set(Strings.PLAYERNAME.toString(), account.getPlayerName());
-		accountSection.set(Strings.REALNAME.toString(), account.getRealName());
+		accountSection.set(Strings.PLAYERNAME.toString(), account.getPlayerName().toString());
 		accountSection.set(Strings.EMAILADDRESS.toString(), account.getEmailAddress());
 		accountSection.set(Strings.BLOCKEDPLAYERS.toString(), account.getBlockedPlayers().toArray());
 		accountSection.set(Strings.VALIDATED.toString(), account.isValidated());
@@ -196,21 +183,15 @@ public class Account{
 	public static Account unserializeAccount(ConfigurationSection accountSection){
 		
 		//create empty attributes
-		String playerName = "";
-		String realName = "";
+		UUID playerName = null;
 		String emailAddress = "";
 		ArrayList<Message> messages = new ArrayList<Message>();
-		Set<String> blockedPlayers = new HashSet<String>();
+		Set<UUID> blockedPlayers = new HashSet<UUID>();
 		boolean validated = false;
 		String activationCode = "none";
 		
 		//grab the playerName
-		playerName = accountSection.getName();
-		
-		//grab the realName
-		if (accountSection.contains(Strings.REALNAME.toString())){
-			realName = (String) accountSection.get(Strings.REALNAME.toString());
-		}
+		playerName = UUID.fromString(accountSection.getName());
 		
 		//grab the email address
 		if (accountSection.contains(Strings.EMAILADDRESS.toString())){
@@ -228,7 +209,12 @@ public class Account{
 		
 		//grab the blocked players
 		if (accountSection.contains(Strings.BLOCKEDPLAYERS.toString())){
-			blockedPlayers.addAll((List<String>) accountSection.getList(Strings.BLOCKEDPLAYERS.toString()));
+			List<String> uids = (List<String>) accountSection.getList(Strings.BLOCKEDPLAYERS.toString());
+			
+			for (String id: uids){
+				blockedPlayers.add(UUID.fromString(id));
+			}
+			
 		}
 		
 		//grab the validated flag
@@ -242,7 +228,7 @@ public class Account{
 		}
 		
 		//create and return the new account
-		return new Account(playerName, realName, emailAddress, messages, blockedPlayers, validated, activationCode);
+		return new Account(playerName, emailAddress, messages, blockedPlayers, validated, activationCode);
 	}
 
 }
