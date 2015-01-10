@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.Properties;
 
 import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -104,11 +105,19 @@ public class EmailSender extends Thread{
 
 			//Set system properties
 			Properties props = System.getProperties();
+			props.put("mail.smtp.starttls.enable", true);
 	        props.put("mail.smtps.host","smtp.gmail.com");
-	        props.put("mail.smtps.auth","true");
+	        props.put("mail.smtps.auth", true);
+	        props.put("mail.smtp.port", "587");
 	        
+	        final String ee = this.emailAccount;
+	        final String pp = this.password;
 	        //Create a session
-	        Session session = Session.getInstance(props, null);
+	        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+	            protected PasswordAuthentication getPasswordAuthentication() {
+	                return new PasswordAuthentication(ee, pp);
+	            }
+	        });
 	        
 	        //Create a message
 	        Message msg = new MimeMessage(session);
